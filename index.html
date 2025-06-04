@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frase de emergencia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Quicksand&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      text-align: center;
+      background: #fef6f9;
+      color: #444;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 28px;
+    }
+
+    #fraseContainer {
+      margin: 30px auto;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    #siguienteBtn, #jugarBtn, #volverBtn, #armarCartaBtn, #descargarBtn {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #ffb6c1;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #juegoContainer {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .caja {
+      width: 120px;
+      height: 120px;
+      margin: 10px;
+      background: #ffe0ec;
+      border-radius: 10px;
+      display: inline-block;
+      vertical-align: top;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .caja img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+      transition: opacity 0.5s ease;
+    }
+
+    #mensajeJuego {
+      margin: 20px;
+      font-size: 20px;
+    }
+
+    #editor-carta {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .foto-elegible {
+      width: 100px;
+      height: 100px;
+      border: 3px solid transparent;
+      border-radius: 12px;
+      margin: 10px;
+      cursor: pointer;
+      transition: border 0.3s ease;
+    }
+
+    .foto-elegible:hover {
+      border-color: #ff99cc;
+    }
+
+    .foto-elegida {
+      border-color: #d63384 !important;
+    }
+
+    #canvas-polaroid {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+
+    #textoCarta {
+      font-size: 18px;
+      padding: 8px;
+      border-radius: 8px;
+      width: 300px;
+      font-family: 'Quicksand', sans-serif;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>💌 Frase de emergencia 💌</h1>
+  <div id="fraseContainer">Haz clic para comenzar</div>
+  <button id="siguienteBtn" onclick="mostrarSiguienteFrase()">Siguiente frase</button>
+  <button id="jugarBtn" onclick="iniciarFotoSorpresa()" style="display: none;">Jugar minijuego sorpresa 🎁</button>
+
+  <div id="juegoContainer">
+    <p id="mensajeJuego"></p>
+    <div class="caja"><img src="" /></div>
+    <div class="caja"><img src="" /></div>
+    <div class="caja"><img src="" /></div>
+  </div>
+
+  <button id="volverBtn" onclick="volverAFrases()" style="display: none;">Volver</button>
+  <button id="armarCartaBtn" onclick="mostrarEditorCarta()" style="display: none;">Armar carta</button>
+
+  <div id="editor-carta">
+    <h3>📷 Elegí tu foto favorita y escribí tu mensaje:</h3>
+    <div id="fotos-elegir"></div>
+    <input type="text" id="textoCarta" placeholder="Escribí tu mensaje..." maxlength="80" />
+    <br />
+    <button onclick="generarCarta()">Generar carta</button>
+    <br />
+    <canvas id="canvas-polaroid" width="300" height="360"></canvas>
+    <br />
+    <button id="descargarBtn" onclick="descargarCarta()" style="display: none;">Descargar carta</button>
+  </div>
+
+  <script>
+    const frases = [
+      "Respirá hondo. Ya está.",
+      "Estás haciendo lo mejor que podés.",
+      "Todo pasa, esto también va a pasar.",
+      "No estás sola.",
+      "Te merecés sentirte bien.",
+      "Un paso a la vez.",
+      "Es válido sentirse así.",
+      "No sos una carga.",
+      "Estás haciendo un gran trabajo.",
+    ];
+
+    let indiceFrase = 0;
+    const fraseContainer = document.getElementById("fraseContainer");
+    const siguienteBtn = document.getElementById("siguienteBtn");
+    const jugarBtn = document.getElementById("jugarBtn");
+
+    function mostrarSiguienteFrase() {
+      if (indiceFrase < frases.length) {
+        fraseContainer.textContent = frases[indiceFrase];
+        indiceFrase++;
+        if (indiceFrase === frases.length) {
+          siguienteBtn.style.display = "none";
+          jugarBtn.style.display = "inline-block";
+        }
+      }
+    }
+
+    function iniciarFotoSorpresa() {
+      const cajas = document.querySelectorAll(".caja");
+      const mensajeJuego = document.getElementById("mensajeJuego");
+      const volverBtn = document.getElementById("volverBtn");
+      const armarBtn = document.getElementById("armarCartaBtn");
+      mensajeJuego.textContent = "Elegí una cajita para ver tu sorpresa 🎁";
+      volverBtn.style.display = "none";
+      armarBtn.style.display = "none";
+      document.getElementById("editor-carta").style.display = "none";
+      document.getElementById("descargarBtn").style.display = "none";
+
+      document.getElementById("juegoContainer").style.display = "block";
+
+      const disponibles = Array.from({ length: 15 }, (_, i) => `foto${i + 1}.jpg`);
+      const seleccionadas = disponibles.sort(() => 0.5 - Math.random()).slice(0, 3);
+      fotosReveladas = seleccionadas;
+
+      let reveladas = 0;
+
+      cajas.forEach((caja, i) => {
+        const img = caja.querySelector("img");
+        img.src = seleccionadas[i];
+        img.style.opacity = 0;
+
+        caja.onclick = function () {
+          if (img.style.opacity === "1") return;
+          img.style.opacity = 1;
+          reveladas++;
+
+          mensajeJuego.textContent = `¡Sorpresa ${reveladas} desbloqueada${reveladas === 1 ? '' : 's'}! 💖`;
+
+          if (reveladas === 3) {
+            volverBtn.style.display = "inline-block";
+            armarBtn.style.display = "inline-block";
+            mensajeJuego.textContent = "¡Has visto todas las sorpresas! 🎉 Ahora podés armar tu carta.";
+          }
+        };
+      });
+    }
+
+    function volverAFrases() {
+      document.getElementById("juegoContainer").style.display = "none";
+      document.getElementById("editor-carta").style.display = "none";
+      document.getElementById("armarCartaBtn").style.display = "none";
+      document.getElementById("volverBtn").style.display = "none";
+      document.getElementById("descargarBtn").style.display = "none";
+      fraseContainer.textContent = frases[indiceFrase - 1] || "Haz clic para comenzar";
+      if (indiceFrase < frases.length) {
+        siguienteBtn.style.display = "inline-block";
+        jugarBtn.style.display = "none";
+      } else {
+        siguienteBtn.style.display = "none";
+        jugarBtn.style.display = "inline-block";
+      }
+    }
+
+    let fotosReveladas = [];
+
+    function mostrarEditorCarta() {
+      const contenedor = document.getElementById("fotos-elegir");
+      contenedor.innerHTML = "";
+
+      fotosReveladas.forEach((src, i) => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.className = "foto-elegible";
+        img.onclick = () => {
+          document.querySelectorAll(".foto-elegible").forEach(f => f.classList.remove("foto-elegida"));
+          img.classList.add("foto-elegida");
+          img.dataset.seleccionada = "true";
+        };
+        contenedor.appendChild(img);
+      });
+
+      document.getElementById("editor-carta").style.display = "block";
+    }
+
+    function generarCarta() {
+      const canvas = document.getElementById("canvas-polaroid");
+      const ctx = canvas.getContext("2d");
+      const seleccionada = document.querySelector(".foto-elegida");
+
+      if (!seleccionada) {
+        alert("Seleccioná una foto primero 💖");
+        return;
+      }
+
+      const texto = document.getElementById("textoCarta").value || "💌";
+      const img = new Image();
+      img.src = seleccionada.src;
+
+      img.onload = () => {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, 300, 360);
+
+        ctx.drawImage(img, 25, 25, 250, 250);
+
+        ctx.fillStyle = "#b03060";
+        ctx.font = "20px 'Dancing Script', cursive";
+        const textoAjustado = ajustarTexto(ctx, texto, 260);
+        ctx.fillText(textoAjustado, 20, 320);
+
+        document.getElementById("descargarBtn").style.display = "inline-block";
+      };
+    }
+
+    function ajustarTexto(ctx, texto, maxWidth) {
+      while (ctx.measureText(texto).width > maxWidth && parseInt(ctx.font) > 12) {
+        const size = parseInt(ctx.font);
+        ctx.font = (size - 1) + "px 'Dancing Script', cursive";
+      }
+      return texto;
+    }
+
+    function descargarCarta() {
+      const canvas = document.getElementById("canvas-polaroid");
+      const enlace = document.createElement("a");
+      enlace.download = "mi-carta.png";
+      enlace.href = canvas.toDataURL();
+      enlace.click();
+    }
+  </script>
+</body>
+</html>
