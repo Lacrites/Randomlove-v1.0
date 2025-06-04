@@ -146,6 +146,18 @@
       "hoy te amo más que ayer y menos que mañana 💗",
     ];
 
+    // Función para barajar un array
+    function barajarFrases(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // Frases que se van mostrando (barajadas)
+    let frasesOriginales = [...frases];
+    barajarFrases(frasesOriginales);
+
     let indiceFrase = 0;
     let fotosReveladas = [];
     let minijuegoIniciado = false;
@@ -155,10 +167,10 @@
     const jugarBtn = document.getElementById("jugarBtn");
 
     function mostrarSiguienteFrase() {
-      if (indiceFrase < frases.length) {
-        fraseContainer.textContent = `Amoor: ${frases[indiceFrase]}`;
+      if (indiceFrase < frasesOriginales.length) {
+        fraseContainer.textContent = `Amoor ${frasesOriginales[indiceFrase]}`;
         indiceFrase++;
-        if (indiceFrase === frases.length) {
+        if (indiceFrase === frasesOriginales.length) {
           siguienteBtn.style.display = "none";
           if (!minijuegoIniciado) {
             jugarBtn.style.display = "inline-block";
@@ -212,14 +224,17 @@
 
     function volverAFrases() {
       indiceFrase = 0;
+      barajarFrases(frasesOriginales);
       fraseContainer.textContent = "🐼";
       siguienteBtn.style.display = "inline-block";
       jugarBtn.style.display = "none";
+      minijuegoIniciado = false;
       document.getElementById("juegoContainer").style.display = "none";
       document.getElementById("editor-carta").style.display = "none";
       document.getElementById("armarCartaBtn").style.display = "none";
       document.getElementById("volverBtn").style.display = "none";
       document.getElementById("descargarBtn").style.display = "none";
+      jugarBtn.disabled = false;
     }
 
     function mostrarEditorCarta() {
@@ -253,6 +268,7 @@
 
       const texto = document.getElementById("textoCarta").value || "💌";
       const img = new Image();
+      img.crossOrigin = "anonymous";
       img.src = seleccionada.src;
 
       img.onload = () => {
@@ -261,25 +277,51 @@
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.drawImage(img, 25, 25, 250, 250);
+        // Dibujo marco estilo polaroid
+        ctx.strokeStyle = "#d63384";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(10, 10, 280, 280);
 
-        ctx.fillStyle = "#b03060";
-        let fontSize = 20;
-        ctx.font = `${fontSize}px 'Dancing Script', cursive`;
+        // Imagen centrada con recorte proporcional
+        const scale = Math.min(280 / img.width, 280 / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const x = 10 + (280 - w) / 2;
+        const y = 10 + (280 - h) / 2;
+        ctx.drawImage(img, x, y, w, h);
+
+        // Texto centrado debajo imagen, máximo 3 líneas
+        ctx.fillStyle = "#d63384";
+        ctx.font = "20px 'Dancing Script', cursive";
         ctx.textBaseline = "top";
 
-        let maxWidth = 260;
-        let textoAjustado = texto;
-        while (ctx.measureText(textoAjustado).width > maxWidth && fontSize > 12) {
-          fontSize--;
-          ctx.font = `${fontSize}px 'Dancing Script', cursive`;
+        const maxLineWidth = 260;
+        const lineHeight = 24;
+        let lines = [];
+        let words = texto.split(" ");
+        let currentLine = "";
+
+        for (let word of words) {
+          let testLine = currentLine + word + " ";
+          if (ctx.measureText(testLine).width > maxLineWidth) {
+            lines.push(currentLine.trim());
+            currentLine = word + " ";
+            if (lines.length >= 3) break;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (lines.length < 3 && currentLine) {
+          lines.push(currentLine.trim());
         }
 
-        const textWidth = ctx.measureText(textoAjustado).width;
-        const x = (canvas.width - textWidth) / 2;
-        const y = 285;
-
-        ctx.fillText(textoAjustado, x, y);
+        const startY = 285;
+        lines.forEach((line, i) => {
+          const lineWidth = ctx.measureText(line).width;
+          const x = (canvas.width - lineWidth) / 2;
+          const y = startY + i * lineHeight;
+          ctx.fillText(line, x, y);
+        });
 
         document.getElementById("descargarBtn").style.display = "inline-block";
       };
@@ -287,10 +329,10 @@
 
     function descargarCarta() {
       const canvas = document.getElementById("canvas-polaroid");
-      const enlace = document.createElement("a");
-      enlace.download = "mi-carta.png";
-      enlace.href = canvas.toDataURL();
-      enlace.click();
+      const link = document.createElement("a");
+      link.download = "carta_polaroid.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
     }
   </script>
 </body>
