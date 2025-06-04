@@ -256,76 +256,90 @@
       document.getElementById("editor-carta").style.display = "block";
     }
 
-    function generarCarta() {
-      const canvas = document.getElementById("canvas-polaroid");
-      const ctx = canvas.getContext("2d");
-      const seleccionada = document.querySelector(".foto-elegida");
+   function generarCarta() {
+  const canvas = document.getElementById("canvas-polaroid");
+  const ctx = canvas.getContext("2d");
+  const seleccionada = document.querySelector(".foto-elegida");
 
-      if (!seleccionada) {
-        alert("Seleccioná una foto primero 💖");
-        return;
+  if (!seleccionada) {
+    alert("Seleccioná una foto primero 💖");
+    return;
+  }
+
+  const texto = document.getElementById("textoCarta").value || "💌";
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = seleccionada.src;
+
+  img.onload = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Fondo blanco (papel polaroid)
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Márgenes realistas de polaroid
+    const marco = {
+      top: 20,
+      left: 20,
+      right: 20,
+      bottom: 80  // margen más grande abajo
+    };
+
+    const imagenArea = {
+      x: marco.left,
+      y: marco.top,
+      width: canvas.width - marco.left - marco.right,
+      height: canvas.height - marco.top - marco.bottom
+    };
+
+    // Calcular escala proporcional para la imagen
+    const scale = Math.min(imagenArea.width / img.width, imagenArea.height / img.height);
+    const imgWidth = img.width * scale;
+    const imgHeight = img.height * scale;
+    const imgX = imagenArea.x + (imagenArea.width - imgWidth) / 2;
+    const imgY = imagenArea.y + (imagenArea.height - imgHeight) / 2;
+
+    ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+
+    // Texto centrado en margen inferior
+    ctx.fillStyle = "#d63384";
+    ctx.font = "20px 'Dancing Script', cursive";
+    ctx.textBaseline = "top";
+
+    const maxLineWidth = canvas.width - 40;
+    const lineHeight = 26;
+    const startY = canvas.height - marco.bottom + 10;
+
+    let lines = [];
+    let words = texto.split(" ");
+    let currentLine = "";
+
+    for (let word of words) {
+      let testLine = currentLine + word + " ";
+      if (ctx.measureText(testLine).width > maxLineWidth) {
+        lines.push(currentLine.trim());
+        currentLine = word + " ";
+        if (lines.length >= 3) break;
+      } else {
+        currentLine = testLine;
       }
-
-      const texto = document.getElementById("textoCarta").value || "💌";
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = seleccionada.src;
-
-      img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Dibujo marco estilo polaroid
-        ctx.strokeStyle = "#d63384";
-        ctx.lineWidth = 6;
-        ctx.strokeRect(10, 10, 280, 280);
-
-        // Imagen centrada con recorte proporcional
-        const scale = Math.min(280 / img.width, 280 / img.height);
-        const w = img.width * scale;
-        const h = img.height * scale;
-        const x = 10 + (280 - w) / 2;
-        const y = 10 + (280 - h) / 2;
-        ctx.drawImage(img, x, y, w, h);
-
-        // Texto centrado debajo imagen, máximo 3 líneas
-        ctx.fillStyle = "#d63384";
-        ctx.font = "20px 'Dancing Script', cursive";
-        ctx.textBaseline = "top";
-
-        const maxLineWidth = 260;
-        const lineHeight = 24;
-        let lines = [];
-        let words = texto.split(" ");
-        let currentLine = "";
-
-        for (let word of words) {
-          let testLine = currentLine + word + " ";
-          if (ctx.measureText(testLine).width > maxLineWidth) {
-            lines.push(currentLine.trim());
-            currentLine = word + " ";
-            if (lines.length >= 3) break;
-          } else {
-            currentLine = testLine;
-          }
-        }
-        if (lines.length < 3 && currentLine) {
-          lines.push(currentLine.trim());
-        }
-
-        const startY = 285;
-        lines.forEach((line, i) => {
-          const lineWidth = ctx.measureText(line).width;
-          const x = (canvas.width - lineWidth) / 2;
-          const y = startY + i * lineHeight;
-          ctx.fillText(line, x, y);
-        });
-
-        document.getElementById("descargarBtn").style.display = "inline-block";
-      };
     }
+    if (lines.length < 3 && currentLine) {
+      lines.push(currentLine.trim());
+    }
+
+    lines.forEach((line, i) => {
+      const lineWidth = ctx.measureText(line).width;
+      const x = (canvas.width - lineWidth) / 2;
+      const y = startY + i * lineHeight;
+      ctx.fillText(line, x, y);
+    });
+
+    document.getElementById("descargarBtn").style.display = "inline-block";
+  };
+}
+
 
     function descargarCarta() {
       const canvas = document.getElementById("canvas-polaroid");
