@@ -147,22 +147,30 @@
     ];
 
     let indiceFrase = 0;
+    let fotosReveladas = [];
+    let minijuegoIniciado = false;
+
     const fraseContainer = document.getElementById("fraseContainer");
     const siguienteBtn = document.getElementById("siguienteBtn");
     const jugarBtn = document.getElementById("jugarBtn");
 
     function mostrarSiguienteFrase() {
       if (indiceFrase < frases.length) {
-        fraseContainer.textContent = frases[indiceFrase];
+        fraseContainer.textContent = `Amoor: ${frases[indiceFrase]}`;
         indiceFrase++;
         if (indiceFrase === frases.length) {
           siguienteBtn.style.display = "none";
-          jugarBtn.style.display = "inline-block";
+          if (!minijuegoIniciado) {
+            jugarBtn.style.display = "inline-block";
+          }
         }
       }
     }
 
     function iniciarFotoSorpresa() {
+      minijuegoIniciado = true;
+      jugarBtn.disabled = true;
+
       const cajas = document.querySelectorAll(".caja");
       const mensajeJuego = document.getElementById("mensajeJuego");
       const volverBtn = document.getElementById("volverBtn");
@@ -203,28 +211,22 @@
     }
 
     function volverAFrases() {
+      indiceFrase = 0;
+      fraseContainer.textContent = "🐼";
+      siguienteBtn.style.display = "inline-block";
+      jugarBtn.style.display = "none";
       document.getElementById("juegoContainer").style.display = "none";
       document.getElementById("editor-carta").style.display = "none";
       document.getElementById("armarCartaBtn").style.display = "none";
       document.getElementById("volverBtn").style.display = "none";
       document.getElementById("descargarBtn").style.display = "none";
-      fraseContainer.textContent = frases[indiceFrase - 1] || "Haz clic para comenzar";
-      if (indiceFrase < frases.length) {
-        siguienteBtn.style.display = "inline-block";
-        jugarBtn.style.display = "none";
-      } else {
-        siguienteBtn.style.display = "none";
-        jugarBtn.style.display = "inline-block";
-      }
     }
-
-    let fotosReveladas = [];
 
     function mostrarEditorCarta() {
       const contenedor = document.getElementById("fotos-elegir");
       contenedor.innerHTML = "";
 
-      fotosReveladas.forEach((src, i) => {
+      fotosReveladas.forEach((src) => {
         const img = document.createElement("img");
         img.src = src;
         img.className = "foto-elegible";
@@ -256,20 +258,16 @@
       img.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Fondo blanco
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Imagen centrada con margen
         ctx.drawImage(img, 25, 25, 250, 250);
 
-        // Texto en marco inferior con ajuste y centrado
         ctx.fillStyle = "#b03060";
         let fontSize = 20;
         ctx.font = `${fontSize}px 'Dancing Script', cursive`;
         ctx.textBaseline = "top";
 
-        // Ajustar tamaño para que el texto quepa dentro de 260px
         let maxWidth = 260;
         let textoAjustado = texto;
         while (ctx.measureText(textoAjustado).width > maxWidth && fontSize > 12) {
@@ -277,10 +275,9 @@
           ctx.font = `${fontSize}px 'Dancing Script', cursive`;
         }
 
-        // Calcular posición centrada horizontalmente y verticalmente en el área inferior
         const textWidth = ctx.measureText(textoAjustado).width;
         const x = (canvas.width - textWidth) / 2;
-        const y = 285; // Un poco abajo de la imagen
+        const y = 285;
 
         ctx.fillText(textoAjustado, x, y);
 
