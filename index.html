@@ -105,7 +105,7 @@
 </head>
 <body>
   <h1>💌 Frase de emergencia 💌</h1>
-  <div id="fraseContainer">Haz clic para comenzar</div>
+  <div id="fraseContainer">🐼</div>
   <button id="siguienteBtn" onclick="mostrarSiguienteFrase()">Siguiente frase</button>
   <button id="jugarBtn" onclick="iniciarFotoSorpresa()" style="display: none;">Jugar minijuego sorpresa 🎁</button>
 
@@ -133,15 +133,17 @@
 
   <script>
     const frases = [
-      "Respirá hondo. Ya está.",
-      "Estás haciendo lo mejor que podés.",
-      "Todo pasa, esto también va a pasar.",
-      "No estás sola.",
-      "Te merecés sentirte bien.",
-      "Un paso a la vez.",
-      "Es válido sentirse así.",
-      "No sos una carga.",
-      "Estás haciendo un gran trabajo.",
+      "te amo mucho muy muchisimo 💖",
+      "te extraño 💗",
+      "wiiiii 💞",
+      "apapacho a la distancia 💕",
+      "bu 🤍",
+      "ti amo ❤️",
+      "que facha eh",
+      ", iba a bajar la intensidad, pero me dijiste que así te gusto",
+      "felicidades por recibirte, te lo super mereces 💗",
+      "💜🤝💙",
+      "hoy te amo más que ayer y menos que mañana 💗",
     ];
 
     let indiceFrase = 0;
@@ -186,7 +188,7 @@
 
         caja.onclick = function () {
           if (img.style.opacity === "1") return;
-          img.style.opacity = 1;
+          img.style.opacity = "1";
           reveladas++;
 
           mensajeJuego.textContent = `¡Sorpresa ${reveladas} desbloqueada${reveladas === 1 ? '' : 's'}! 💖`;
@@ -252,26 +254,38 @@
       img.src = seleccionada.src;
 
       img.onload = () => {
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, 300, 360);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Fondo blanco
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Imagen centrada con margen
         ctx.drawImage(img, 25, 25, 250, 250);
 
+        // Texto en marco inferior con ajuste y centrado
         ctx.fillStyle = "#b03060";
-        ctx.font = "20px 'Dancing Script', cursive";
-        const textoAjustado = ajustarTexto(ctx, texto, 260);
-        ctx.fillText(textoAjustado, 20, 320);
+        let fontSize = 20;
+        ctx.font = `${fontSize}px 'Dancing Script', cursive`;
+        ctx.textBaseline = "top";
+
+        // Ajustar tamaño para que el texto quepa dentro de 260px
+        let maxWidth = 260;
+        let textoAjustado = texto;
+        while (ctx.measureText(textoAjustado).width > maxWidth && fontSize > 12) {
+          fontSize--;
+          ctx.font = `${fontSize}px 'Dancing Script', cursive`;
+        }
+
+        // Calcular posición centrada horizontalmente y verticalmente en el área inferior
+        const textWidth = ctx.measureText(textoAjustado).width;
+        const x = (canvas.width - textWidth) / 2;
+        const y = 285; // Un poco abajo de la imagen
+
+        ctx.fillText(textoAjustado, x, y);
 
         document.getElementById("descargarBtn").style.display = "inline-block";
       };
-    }
-
-    function ajustarTexto(ctx, texto, maxWidth) {
-      while (ctx.measureText(texto).width > maxWidth && parseInt(ctx.font) > 12) {
-        const size = parseInt(ctx.font);
-        ctx.font = (size - 1) + "px 'Dancing Script', cursive";
-      }
-      return texto;
     }
 
     function descargarCarta() {
